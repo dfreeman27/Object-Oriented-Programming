@@ -5,8 +5,8 @@ class Book:
         self.year = year
         self.checked_out = False
 
-        if self.year < 0:
-            raise ValueError("Year cannot be negative")
+        if not isinstance(year, int) or year <= 0:
+            raise ValueError("Year must be a postive interger")
 
     def check_out(self):
         """Mark the book as checked out."""
@@ -24,62 +24,95 @@ class Book:
         status = 'Checked Out' if self.checked_out else 'Available'
         return f"'{self.title}' by {self.author} ({self.year}) - {status}"
 
-class Ebook(Book):
+class EBook(Book):
+    """An electronic book that supports multiple checkouts."""
+
     def __init__(self, title, author, year, file_size_mb):
         super().__init__(title, author, year)
+
         self.file_size_mb = file_size_mb
-
-    def __repr__(self):
-        status = 'Checked Out' if self.checked_out else 'Available'
-        return f"'{self.title}' by {self.author} ({self.year}) - {status}, File Size: {self.file_size_mb}MB"
-
-    counter = 0  # Class variable to keep track of the number of Ebook instances
+        self.checkoutcount = 0
 
     def check_out(self):
-        """Mark the ebook as checked out and increment the counter."""
-        super().check_out()
-        Ebook.counter += 1
+        """Increment the number of active checkouts."""
+        self.checkoutcount += 1
+
+    def return_book(self):
+        """Decrease the checkout count without going below zero."""
+        if self.checkoutcount == 0:
+            raise ValueError(
+                f"The EBook '{self.title}' has no active checkouts."
+            )
+
+        self.checkoutcount -= 1
+
+    def __repr__(self):
+        return (
+            f"'{self.title}' by {self.author} "
+            f"({self.year}) - "
+            f"File Size: {self.file_size_mb}MB, "
+            f"Active Checkouts: {self.checkoutcount}"
+        )
+
 
 class Catalog:
-    """Manages a collection of books."""
+    """Manages a collection of physical books and EBooks."""
 
     def __init__(self):
-        self.books = []  # Internal list of book objects
+        self.books = []
 
     def add_book(self, book):
-        """Add a new book to the catalog."""
+        """Add a Book or EBook to the catalog."""
         if not isinstance(book, Book):
-            raise ValueError("Only instances of Book or its subclasses can be added.")
+            raise ValueError(
+                "Only Book or EBook instances can be added."
+            )
+
         self.books.append(book)
 
     def get_available_books(self):
-        """Return all available books."""
-        return [book for book in self.books if not book.checked_out]
+        """Return all books available for checkout.
 
-    def summary(self):
-        """Return a summary of all books."""
-        total = len(self.books)
-        checked_out = sum(1 for book in self.books if book.checked_out)
-        print(f"\nCatalog Summary: {checked_out}/{total} checked out.")
-        for book in self.books:
-            print(f" - {book}")
+        Physical books must not already be checked out.
+        EBooks remain available for multiple checkouts.
+        """
+        return [
+            book for book in self.books
+            if isinstance(book, EBook) or not book.checked_out
+        ]
 
     def search_by_title(self, title):
-        """Search for books by title."""
-        return [book for book in self.books if title.lower() in book.title.lower()]
+        """Search for books by title, ignoring case."""
+        return [
+            book for book in self.books
+            if title.lower() in book.title.lower()
+        ]
 
-catalog = Catalog()
-catalog.add_book(Book("Python Crash Course", "Eric Matthes", 2019))
-catalog.add_book(Book("Clean Code", "Robert Martin", 2008))
-catalog.add_book(Ebook("AI Engineering", "Chip Huyen", 2025, 15.2))
+    def search_by_author(self, author):
+        """Search for books by author, ignoring case."""
+        return [
+            book for book in self.books
+            if author.lower() in book.author.lower()
+        ]
 
-# Search
-results = catalog.search_by_title("python")
-print(results)  # Should find "Python Crash Course"
+    def summary(self):
+        """Display a summary of all books in the catalog."""
+        total = len(self.books)
 
-# Check out
-catalog.books[0].check_out()
-available = catalog.get_available_books()
-print(f"Available: {len(available)} books")
+        checked_out = sum(
+            1 for book in self.books
+            if (
+                book.checkoutcount > 0
+                if isinstance(book, EBook)
+                else book.checked_out
+            )
+        )
 
-catalog.summary()
+        print(
+            f"\nCatalog Summary: "
+            f"{checked_out}/{total} titles currently checked out."
+        )
+
+        for book in self.books:
+            print(f" - {book}")
+            
