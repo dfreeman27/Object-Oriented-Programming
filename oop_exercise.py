@@ -6,7 +6,7 @@ class Book:
         self.checked_out = False
 
         if not isinstance(year, int) or year <= 0:
-            raise ValueError("Year must be a postive interger")
+            raise ValueError("Year must be a positive interger")
 
     def check_out(self):
         """Mark the book as checked out."""
