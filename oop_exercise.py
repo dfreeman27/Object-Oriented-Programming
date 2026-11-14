@@ -6,7 +6,7 @@ class Book:
         self.checked_out = False
 
         if not isinstance(year, int) or year <= 0:
-            raise ValueError("Year must be a positive interger")
+            raise ValueError("Year must be a positive integer")
 
     def check_out(self):
         """Mark the book as checked out."""
@@ -70,24 +70,23 @@ class Catalog:
 
         self.books.append(book)
 
-    def get_available_books(self):
+    def get_available(self):
         """Return all books available for checkout.
 
-        Physical books must not already be checked out.
-        EBooks remain available for multiple checkouts.
-        """
+    Physical books must not already be checked out.
+    EBooks remain available for multiple checkouts.
+    """
         return [
-            book for book in self.books
-            if isinstance(book, EBook) or not book.checked_out
-        ]
+        book for book in self.books
+        if isinstance(book, EBook) or not book.checked_out
+    ]
 
-    def search_by_title(self, title):
-        """Search for books by title, ignoring case."""
+    def search_by_title(self, keyword):
+        """Find books whose title contains the keyword, ignoring case."""
         return [
-            book for book in self.books
-            if title.lower() in book.title.lower()
-        ]
-
+        book for book in self.books
+        if keyword.lower() in book.title.lower()
+    ]
     def search_by_author(self, author):
         """Search for books by author, ignoring case."""
         return [
@@ -115,4 +114,5 @@ class Catalog:
 
         for book in self.books:
             print(f" - {book}")
+            
             
